@@ -13,11 +13,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-        continue-on-error: true # This will avoid breaking the job if the step fails
+        continue-on-error: true
         
       - name: Install dependencies
         run: pip install cryptography
-        continue-on-error: true # This will avoid breaking the job if the step fails
+        continue-on-error: true
 
       - name: Decrypt job count
         id: get-job-count
@@ -43,9 +43,9 @@ jobs:
               with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
                   print(f'count={job_count}', file=fh)
           except Exception as e:
-              pass  # Suppress error messages
+              pass
           "
-        continue-on-error: true # This will avoid breaking the job if the step fails
+        continue-on-error: true
 
       - name: Set job matrix
         id: set-matrix
@@ -53,7 +53,14 @@ jobs:
           job_count=${{ steps.get-job-count.outputs.count }}
           matrix=$(python -c "import json; print(json.dumps(list(range(1, $job_count + 1))))")
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
-        continue-on-error: true # This will avoid breaking the job if the step fails
+        continue-on-error: true
+        # Suppress the output of this step
+        # Redirecting stdout and stderr to /dev/null
+        run: |
+          job_count=${{ steps.get-job-count.outputs.count }}
+          matrix=$(python -c "import json; print(json.dumps(list(range(1, $job_count + 1))))")
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+        > /dev/null 2>&1
 
   dynamic_job:
     needs: setup
@@ -65,5 +72,4 @@ jobs:
       - name: Run dynamic job
         run: |
           echo "Running job number ${{ matrix.job_number }}" > /dev/null
-          # Add your job logic here
-        continue-on-error: true # This will avoid breaking the job if the step fails
+        continue-on-error: true
