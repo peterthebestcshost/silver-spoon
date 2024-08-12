@@ -11,13 +11,31 @@ jobs:
       job_count: ${{ steps.get-job-count.outputs.count }}
       job_matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Get job count
+      - name: Install cryptography for decryption
+        run: pip install cryptography
+
+      - name: Decrypt job count
         id: get-job-count
-        run: echo "count=${{ github.event.client_payload.job_count }}" >> $GITHUB_OUTPUT
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          from cryptography.fernet import Fernet
+          import base64
+          import json
+          
+          # Decode the secret key and encrypted data
+          secret_key = "${{ env.SECRET_KEY }}".encode()
+          encrypted_data = "${{ github.event.client_payload.encrypted_data }}".encode()
+          
+          fernet = Fernet(secret_key)
+          decrypted_data = fernet.decrypt(base64.urlsafe_b64decode(encrypted_data)).decode()
+          job_count = json.loads(decrypted_data)['job_count']
+          
+          echo "count=$job_count" >> $GITHUB_OUTPUT
+
       - name: Set job matrix
         id: set-matrix
         run: |
-          job_count=${{ github.event.client_payload.job_count }}
           matrix=$(seq -s ',' 1 $job_count | sed 's/^/[/; s/$/]/')
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
