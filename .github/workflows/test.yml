@@ -46,14 +46,14 @@ jobs:
         id: set-matrix
         run: |
           matrix=$(seq -s ',' 1 ${{ env.JOB_COUNT }} | sed 's/^/[/; s/$/]/')
-          echo "JOB_MATRIX=$matrix" >> $GITHUB_ENV
+          echo "matrix=$matrix" >> $GITHUB_ENV
 
   dynamic_job:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_number: ${{ fromJson(env.JOB_MATRIX) }}
+        job_number: ${{ fromJson(needs.setup.outputs.job_matrix) }}
     steps:
       - name: Run dynamic job
         run: |
