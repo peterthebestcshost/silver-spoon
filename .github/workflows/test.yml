@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_number: ${{ fromJson(needs.setup.outputs.job_count) }}
+        job_number: ${{ fromJson(format('[{0}]', join(range(needs.setup.outputs.job_count | int), ','))) }}
     steps:
       - name: Run dynamic job
         run: |
