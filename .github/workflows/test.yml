@@ -54,13 +54,9 @@ jobs:
           matrix=$(python -c "import json; print(json.dumps(list(range(1, $job_count + 1))))")
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
         continue-on-error: true
-        # Suppress the output of this step
-        # Redirecting stdout and stderr to /dev/null
-        run: |
-          job_count=${{ steps.get-job-count.outputs.count }}
-          matrix=$(python -c "import json; print(json.dumps(list(range(1, $job_count + 1))))")
-          echo "matrix=$matrix" >> $GITHUB_OUTPUT
-        > /dev/null 2>&1
+        # Suppress logs by redirecting output to /dev/null
+        # Note: GitHub Actions doesn't natively support this redirection in YAML, so this part should be omitted if you face issues.
+        # If you want to suppress output, you should manually avoid printing unnecessary logs.
 
   dynamic_job:
     needs: setup
