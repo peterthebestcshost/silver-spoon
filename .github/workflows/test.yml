@@ -1,20 +1,27 @@
-name: CI
+name: DJW
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
+    types: [run_jobs]
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-
+    outputs:
+      job_count: ${{ steps.get-job-count.outputs.count }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Get job count
+        id: get-job-count
+        run: echo "count=${{ github.event.client_payload.job_count }}" >> $GITHUB_OUTPUT
 
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-
-      - name: Run a multi-line script
+  dynamic_job:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        job_number: ${{ fromJson(needs.setup.outputs.job_count) }}
+    steps:
+      - name: Run dynamic job
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo "Running job number ${{ matrix.job_number }}"
+          # Add your job logic here
