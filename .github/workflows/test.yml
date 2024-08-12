@@ -19,9 +19,6 @@ jobs:
       - name: Install dependencies
         run: pip install cryptography
 
-      - name: Print environment variables
-        run: printenv
-
       - name: Decrypt job count
         id: get-job-count
         env:
@@ -31,31 +28,23 @@ jobs:
           from cryptography.fernet import Fernet
           import base64
           import json
-          import os
-
-          # Print environment variables for debugging
-          print('Environment Variables:', os.environ)
-
-          # Decode the secret key and encrypted data
-          secret_key = os.environ.get('SECRET_KEY', '').encode()
-          encrypted_data = os.environ.get('GITHUB_EVENT_CLIENT_PAYLOAD_ENCRYPTED_DATA', '').encode()
-
-          if not secret_key or not encrypted_data:
-              raise ValueError('Secret key or encrypted data not found')
-
-          fernet = Fernet(secret_key)
-          decrypted_data = fernet.decrypt(base64.urlsafe_b64decode(encrypted_data)).decode()
-          job_count = json.loads(decrypted_data)['job_count']
-
-          with open(os.environ['GITHUB_ENV'], 'a') as env_file:
-              env_file.write(f'JOB_COUNT={job_count}\n')
+          import sys
+      
+          try:
+              secret_key = '${{ env.SECRET_KEY }}'.encode()
+              encrypted_data = '${{ github.event.client_payload.encrypted_data }}'.encode()
+      
+              fernet = Fernet(secret_key)
+              decrypted_data = fernet.decrypt(base64.urlsafe_b64decode(encrypted_data)).decode()
+      
+              print(f'Decrypted data: {decrypted_data}')
+              job_count = json.loads(decrypted_data)['job_count']
+      
+              print(f'::set-output name=count::{job_count}')
+          except Exception as e:
+              print(f'Error: {str(e)}')
+              sys.exit(1)
           "
-
-      - name: Set job matrix
-        id: set-matrix
-        run: |
-          matrix=$(seq -s ',' 1 ${{ env.JOB_COUNT }} | sed 's/^/[/; s/$/]/')
-          echo "matrix=$matrix" >> $GITHUB_ENV
 
   dynamic_job:
     needs: setup
