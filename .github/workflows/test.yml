@@ -1,9 +1,7 @@
 name: DJW
-
 on:
   repository_dispatch:
     types: [run_jobs]
-
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -14,11 +12,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'  # Specify the Python version
-
+          python-version: '3.x'
       - name: Install dependencies
         run: pip install cryptography
-
       - name: Decrypt job count
         id: get-job-count
         env:
@@ -45,6 +41,12 @@ jobs:
               print(f'Error: {str(e)}')
               sys.exit(1)
           "
+      - name: Set job matrix
+        id: set-matrix
+        run: |
+          job_count=${{ steps.get-job-count.outputs.count }}
+          matrix=$(python -c "print(json.dumps(list(range(1, $job_count + 1))))")
+          echo "::set-output name=matrix::$matrix"
 
   dynamic_job:
     needs: setup
