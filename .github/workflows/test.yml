@@ -36,7 +36,7 @@ jobs:
               print(f'Decrypted data: {decrypted_data}')
               job_count = json.loads(decrypted_data)['job_count']
       
-              print(f'::set-output name=count::{job_count}')
+              print(f'count={job_count}' >> $GITHUB_OUTPUT)
           except Exception as e:
               print(f'Error: {str(e)}')
               sys.exit(1)
@@ -45,8 +45,8 @@ jobs:
         id: set-matrix
         run: |
           job_count=${{ steps.get-job-count.outputs.count }}
-          matrix=$(python -c "print(json.dumps(list(range(1, $job_count + 1))))")
-          echo "::set-output name=matrix::$matrix"
+          matrix=$(python -c "import json; print(json.dumps(list(range(1, $job_count + 1))))")
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   dynamic_job:
     needs: setup
