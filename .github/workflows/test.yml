@@ -9,17 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       job_count: ${{ steps.get-job-count.outputs.count }}
+      job_matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Get job count
         id: get-job-count
         run: echo "count=${{ github.event.client_payload.job_count }}" >> $GITHUB_OUTPUT
+      - name: Set job matrix
+        id: set-matrix
+        run: |
+          job_count=${{ github.event.client_payload.job_count }}
+          matrix=$(seq -s ',' 1 $job_count | sed 's/^/[/; s/$/]/')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   dynamic_job:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        job_number: ${{ fromJson(format('[{0}]', join(range(needs.setup.outputs.job_count | int), ','))) }}
+        job_number: ${{ fromJson(needs.setup.outputs.job_matrix) }}
     steps:
       - name: Run dynamic job
         run: |
