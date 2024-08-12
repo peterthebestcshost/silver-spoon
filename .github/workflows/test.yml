@@ -54,13 +54,12 @@ jobs:
           matrix=$(python -c "import json; print(json.dumps(list(range(1, $job_count + 1))))")
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
         continue-on-error: true
-        # Redirect stdout and stderr to /dev/null to minimize logging
         shell: bash
+        # Suppress command outputs
         run: |
           job_count=${{ steps.get-job-count.outputs.count }} > /dev/null 2>&1
           matrix=$(python -c "import json; print(json.dumps(list(range(1, $job_count + 1))))") > /dev/null 2>&1
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
-        # Disable logs from shell commands
 
   dynamic_job:
     needs: setup
