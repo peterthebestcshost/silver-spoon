@@ -19,6 +19,9 @@ jobs:
       - name: Install dependencies
         run: pip install cryptography
 
+      - name: Print environment variables
+        run: printenv
+
       - name: Decrypt job count
         id: get-job-count
         env:
@@ -30,9 +33,15 @@ jobs:
           import json
           import os
 
+          # Print environment variables for debugging
+          print('Environment Variables:', os.environ)
+
           # Decode the secret key and encrypted data
-          secret_key = os.environ['SECRET_KEY'].encode()
-          encrypted_data = os.environ['GITHUB_EVENT_CLIENT_PAYLOAD_ENCRYPTED_DATA'].encode()
+          secret_key = os.environ.get('SECRET_KEY', '').encode()
+          encrypted_data = os.environ.get('GITHUB_EVENT_CLIENT_PAYLOAD_ENCRYPTED_DATA', '').encode()
+
+          if not secret_key or not encrypted_data:
+              raise ValueError('Secret key or encrypted data not found')
 
           fernet = Fernet(secret_key)
           decrypted_data = fernet.decrypt(base64.urlsafe_b64decode(encrypted_data)).decode()
