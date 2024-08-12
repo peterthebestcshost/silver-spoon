@@ -25,18 +25,20 @@ jobs:
           import base64
           import json
           import sys
-      
+          import os
+
           try:
               secret_key = '${{ env.SECRET_KEY }}'.encode()
               encrypted_data = '${{ github.event.client_payload.encrypted_data }}'.encode()
-      
+
               fernet = Fernet(secret_key)
               decrypted_data = fernet.decrypt(base64.urlsafe_b64decode(encrypted_data)).decode()
-      
+
               print(f'Decrypted data: {decrypted_data}')
               job_count = json.loads(decrypted_data)['job_count']
-      
-              print(f'count={job_count}' >> $GITHUB_OUTPUT)
+
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  print(f'count={job_count}', file=fh)
           except Exception as e:
               print(f'Error: {str(e)}')
               sys.exit(1)
